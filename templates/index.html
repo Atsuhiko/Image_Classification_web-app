@@ -2,7 +2,7 @@
 {% block content %}
 
 <div style="text-align:center;">
-<font size="5">
+<font size="4">
 ファイルを選択して送信してください
 </font>
 <hr>
@@ -11,18 +11,25 @@
     <input type="file" name="image" accept="image/png, image/jpeg">
     <input type = "submit"/>
 </form>
+</div>
 
-{% if prediction %}
+{% if err_message %}
 <hr>
+<center><font size="6" color=red><b>{{ err_message }}</b></font></center>
+<hr>
+{% endif %}
+
+{% if result %}
+<hr>
+<center>
 <img src="./images/{{ filepath }}" style="margin-top: 10px; vertical-align: bottom; width: 300px"><br>
 <hr>
-<font size="4"><b>予測結果: {{ prediction }}</b></font><br>
+<font size="4"><b>予測結果: {{ result }}</b></font><br>
 <font size="3">
 File: {{ filepath }}<br>
-<!-- Save path: {{ save_path }}<br> -->
-Woman {{ woman }}<br>
-Man: {{ man }}<br>
+Prediction: {{ prediction }}
 </font>
+</center>
 <hr>
 
 {% endif %}
