@@ -8,10 +8,8 @@ from flask import Flask, render_template, request, redirect, url_for, send_from_
 from PIL import Image
 import numpy as np
 from datetime import datetime
-from tensorflow.keras.preprocessing.image import load_img
 from tensorflow.keras.models import load_model
-# 判別アルゴリズムのインポート
-from image_process import Predict_Woman_Man
+from image_process import Predict_Image # 自作モジュール
 
 app = Flask(__name__)
 
@@ -32,28 +30,29 @@ def upload_file():
 
         # 画像として読み込み
         image = request.files['image']
-        input_img = Image.open(image)
+        if image:
+            img = Image.open(image)
+        else: # エラー処理
+            return render_template("index.html", err_message="ファイルを選択してください！")
 
-        # 男と女の判別
+        # 判別
         model = load_model('model.h5') # 学習ずみモデルの読み込み
-        result = Predict_Woman_Man(input_img, model)
-        #print(result)
+        predict = Predict_Image(img, model)
+        prediction = predict[0]
 
-        man = float(result[0][0]) # floar() しないとSQLにrealとして渡せない
-        woman = float(result[0][1])
-
-        if result[0][0] > result[0][1]:
-            prediction = "man"
+        if np.argmax(prediction) == 0:
+            result = "男性"
         else:
-            prediction = "woman"
+            result = "女性"
 
         # 判別後のラベルと時刻を付けてファイル名を付け、画像を保存
-        filepath = prediction + datetime.now().strftime("_%Y%m%d%H%M%S") + ".jpg"
+        filepath = result + datetime.now().strftime("_%Y%m%d%H%M%S") + ".jpg"
         save_path = os.path.join(SAVE_DIR, filepath)
-        input_img.save(save_path)
+        save_image = Image.open(image) # pillowの関数
+        save_image.save(save_path)
 
-        return  render_template("index.html", 
-                                filepath=filepath, prediction=prediction, woman=woman, man=man)
+        return  render_template("index.html",
+                                filepath=filepath, result=result, prediction=prediction)
 
 if __name__ == '__main__':
     app.run(debug=True,  host='0.0.0.0', port=2222) # ポートの変更
